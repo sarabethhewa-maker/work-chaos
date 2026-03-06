@@ -1,12 +1,12 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useSimulation } from "@/hooks/useSimulation";
 import { useSounds } from "@/hooks/useSounds";
 import EnvBackground from "@/components/EnvBackground";
 import CharacterSprite from "@/components/CharacterSprite";
 import PetSprite from "@/components/PetSprite";
 import AddCharacter from "@/components/AddCharacter";
-import CommandBar from "@/components/CommandBar";
+
 import WeatherOverlay from "@/components/WeatherOverlay";
 import { ENVIRONMENTS } from "@/types";
 import type { WeatherState } from "@/types";
@@ -35,8 +35,8 @@ export default function Home() {
   const {
     characters, pets, lavaBalls, snowballs, addCharacter, removeCharacter, updateCharacterFace,
     startFight, startChase, startFly, startCartwheel,
-    startDance, startNap, startMeeting, startPanic, startPromote,
-    sayPhrase, allCartwheel, allFight, chaosMode,
+    startDance, startNap, startPanic,
+    sayPhrase, allCartwheel, allFight,
   } = useSimulation(weather, env);
 
   useSounds(characters, muted);
@@ -118,47 +118,6 @@ export default function Home() {
     }
     setMode("none"); setSelected([]);
   };
-
-  const handleCommand = useCallback((action: string, chars: string[], extra?: string) => {
-    const findId = (name: string) => {
-      const lower = name.toLowerCase();
-      return characters.find(c => c.name.toLowerCase() === lower)?.id;
-    };
-
-    switch (action) {
-      case "fight": {
-        if (chars.length >= 2) { const a = findId(chars[0]); const b = findId(chars[1]); if (a && b) { startFight(a, b); showToast("👊 FIGHT!"); } } break;
-      }
-      case "chase": {
-        if (chars.length >= 2) { const a = findId(chars[0]); const b = findId(chars[1]); if (a && b) { startChase(a, b); showToast("🎯 Chase!"); } } break;
-      }
-      case "fly": {
-        const a = findId(chars[0]); const b = chars[1] ? findId(chars[1]) : undefined;
-        if (a) { startFly(a, b); showToast("✈️ Flying!"); } break;
-      }
-      case "cartwheel": { const a = findId(chars[0]); if (a) { startCartwheel(a); showToast("🌀 Cartwheel!"); } break; }
-      case "dance": {
-        if (chars.length === 0) { characters.forEach(c => startDance(c.id)); showToast("💃 Everyone dance!"); }
-        else { const a = findId(chars[0]); if (a) { startDance(a); showToast("💃 Dance!"); } } break;
-      }
-      case "nap": { const a = findId(chars[0]); if (a) { startNap(a); showToast("💤 Nap time!"); } break; }
-      case "meeting": {
-        const ids = chars.map(findId).filter((id): id is string => !!id);
-        if (ids.length >= 3) { startMeeting(ids); showToast("📋 Meeting time!"); }
-        else showToast("Need 3+ people for a meeting!"); break;
-      }
-      case "panic": {
-        if (chars.length === 0) { characters.forEach(c => startPanic(c.id)); showToast("😱 EVERYONE PANIC!"); }
-        else { const a = findId(chars[0]); if (a) { startPanic(a); showToast("😱 PANIC!"); } } break;
-      }
-      case "promote": { const a = findId(chars[0]); if (a) { startPromote(a); showToast("🏆 PROMOTED!"); } break; }
-      case "say": { const a = findId(chars[0]); if (a) { sayPhrase(a); showToast("💬 Speaking!"); } break; }
-      case "all_cartwheel": allCartwheel(); showToast("🌀 Everyone cartwheel!"); break;
-      case "all_fight": allFight(); showToast("👊 BRAWL!"); break;
-      case "chaos_mode": chaosMode(); showToast("🔥 CHAOS MODE!"); break;
-      default: showToast(`Unknown action: ${action}`);
-    }
-  }, [characters, startFight, startChase, startFly, startCartwheel, startDance, startNap, startMeeting, startPanic, startPromote, sayPhrase, allCartwheel, allFight, chaosMode]);
 
   return (
     <main className="main">
@@ -295,14 +254,6 @@ export default function Home() {
           </div>
         )}
       </div>
-
-      {/* AI Command Bar */}
-      {characters.length > 0 && (
-        <CommandBar
-          characterNames={characters.map(c => c.name)}
-          onAction={handleCommand}
-        />
-      )}
 
       {toast && <div className="toast">{toast}</div>}
     </main>
