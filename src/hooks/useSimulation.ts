@@ -197,6 +197,21 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
     });
   }, []);
 
+  const reviveAll = useCallback(() => {
+    fightResultRef.current.clear();
+    setCharacters(prev => prev.map(c => {
+      if (c.state === "knocked-out" || c.state === "tripping" || c.state === "getting-up" || c.state === "wobble" || c.state === "melting") {
+        return {
+          ...c, state: "running" as CharacterState, stateTimer: 0,
+          vx: randSign() * rand(0.8, 1.6), vy: randSign() * rand(0.1, 0.3),
+          direction: (Math.random() > 0.5 ? "right" : "left") as Direction,
+          speechBubble: undefined, speechTimer: 0,
+        };
+      }
+      return c;
+    }));
+  }, []);
+
   const chaosMode = useCallback(() => {
     setCharacters(prev => prev.map(c => ({
       ...c, vx: randSign() * rand(8, 16), vy: randSign() * rand(2, 5),
@@ -601,6 +616,6 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
     addCharacter, removeCharacter, updateCharacterFace,
     startFight, startChase, startFly, startCartwheel,
     startDance, startNap, startMeeting, startPanic, startPromote,
-    sayPhrase, allCartwheel, allFight, chaosMode,
+    sayPhrase, allCartwheel, allFight, chaosMode, reviveAll,
   };
 }

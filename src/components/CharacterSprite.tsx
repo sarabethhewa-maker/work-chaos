@@ -96,6 +96,12 @@ export default function CharacterSprite({ character, frame, onClick, isSelected,
         </div>
       )}
 
+      {weather === "rain" && !isNapping && !isKnockedOut && !isMelting && (
+        <div className="umbrella-icon" style={{ transform: `scaleX(${flipped ? -1 : 1})` }}>
+          ☂️
+        </div>
+      )}
+
       <svg width="56" height="96" viewBox="0 0 56 96" overflow="visible"
         style={{
           filter: `drop-shadow(2px 4px 5px rgba(0,0,0,0.35))${isSelected ? " drop-shadow(0 0 8px #fff)" : ""}`,
@@ -291,21 +297,7 @@ export default function CharacterSprite({ character, frame, onClick, isSelected,
         <ellipse cx={headCX} cy={headCY + hbob} rx={headRX} ry={headRY} fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="1"
           transform={`rotate(${htilt}, ${headCX}, ${headCY + hbob})`}/>
 
-        {/* Rain umbrella */}
-        {weather === "rain" && !isNapping && !isKnockedOut && !isMelting && (
-          <>
-            {/* Handle */}
-            <line x1="28" y1="-6" x2="28" y2={headCY - headRY + 1} stroke="#6b4400" strokeWidth="2" strokeLinecap="round"/>
-            {/* Canopy — dome */}
-            <path d="M 6,-6 Q 28,-30 50,-6 Z" fill="#6b4ce6" stroke="#4a2db8" strokeWidth="1.2"/>
-            {/* Canopy ribs */}
-            <line x1="18" y1="-6" x2="22" y2="-22" stroke="#5538c8" strokeWidth="0.6" opacity="0.5"/>
-            <line x1="28" y1="-6" x2="28" y2="-24" stroke="#5538c8" strokeWidth="0.6" opacity="0.5"/>
-            <line x1="38" y1="-6" x2="34" y2="-22" stroke="#5538c8" strokeWidth="0.6" opacity="0.5"/>
-            {/* Handle hook */}
-            <path d="M 28,-6 Q 28,-2 24,-2" fill="none" stroke="#6b4400" strokeWidth="1.5" strokeLinecap="round"/>
-          </>
-        )}
+        {/* Rain umbrella removed from SVG — rendered as HTML element above */}
 
         {/* State FX */}
         {isTripping && <><text x="42" y="8" fontSize="13">😵</text><text x="48" y="18" fontSize="9">⭐</text></>}

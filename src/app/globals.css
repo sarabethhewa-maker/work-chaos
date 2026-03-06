@@ -236,6 +236,27 @@ body {
   position: absolute; pointer-events: none; will-change: left, top;
 }
 
+/* ── Revive All button ── */
+.revive-btn {
+  position: absolute; top: 12px; right: 12px; z-index: 20;
+  background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+  color: #2ed573; font-family: var(--font-mono), monospace;
+  padding: 8px 16px; border-radius: 6px; font-size: 11px;
+  font-weight: 700; letter-spacing: 1.5px; cursor: pointer;
+  border: 1.5px solid #2ed573;
+  box-shadow: 0 0 12px rgba(46,213,115,0.3);
+  transition: all 0.15s;
+  animation: revivePulse 1.5s ease-in-out infinite;
+}
+.revive-btn:hover {
+  background: rgba(46,213,115,0.2);
+  box-shadow: 0 0 20px rgba(46,213,115,0.5);
+}
+@keyframes revivePulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(46,213,115,0.3); }
+  50% { box-shadow: 0 0 20px rgba(46,213,115,0.6); }
+}
+
 /* ── Mode banner ── */
 .mode-banner {
   position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
@@ -418,6 +439,19 @@ body {
 .cmd-error {
   font-family: var(--font-mono), monospace;
   font-size: 10px; color: #ff6b6b; letter-spacing: 0.5px;
+}
+
+/* ── Rain Umbrella ── */
+.umbrella-icon {
+  position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+  font-size: 28px; line-height: 1; z-index: 10;
+  margin-bottom: 2px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+  animation: umbrellaFloat 2s ease-in-out infinite;
+}
+@keyframes umbrellaFloat {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-3px); }
 }
 
 /* ── Zzz Bubbles ── */

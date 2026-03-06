@@ -36,7 +36,7 @@ export default function Home() {
     characters, pets, lavaBalls, snowballs, addCharacter, removeCharacter, updateCharacterFace,
     startFight, startChase, startFly, startCartwheel,
     startDance, startNap, startPanic,
-    sayPhrase, allCartwheel, allFight,
+    sayPhrase, allCartwheel, allFight, reviveAll,
   } = useSimulation(weather, env);
 
   useSounds(characters, muted);
@@ -213,6 +213,9 @@ export default function Home() {
               </svg>
             </div>
           ))}
+          {characters.some(c => c.state === "knocked-out" || c.state === "tripping" || c.state === "getting-up" || c.state === "wobble" || c.state === "melting") && (
+            <button className="revive-btn" onClick={reviveAll}>REVIVE ALL</button>
+          )}
           {characters.length === 0 && (
             <div className="empty-hint">Add some people to watch the chaos unfold!</div>
           )}
