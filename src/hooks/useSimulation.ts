@@ -199,12 +199,17 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
 
   const reviveAll = useCallback(() => {
     fightResultRef.current.clear();
+    punchTickRef.current.clear();
     setCharacters(prev => prev.map(c => {
-      if (c.state === "knocked-out" || c.state === "tripping" || c.state === "getting-up" || c.state === "wobble" || c.state === "melting") {
+      if (c.state !== "running") {
         return {
           ...c, state: "running" as CharacterState, stateTimer: 0,
+          isFlying: false, targetId: undefined, carriedById: undefined,
+          meetingX: undefined, meetingY: undefined,
           vx: randSign() * rand(0.8, 1.6), vy: randSign() * rand(0.1, 0.3),
           direction: (Math.random() > 0.5 ? "right" : "left") as Direction,
+          x: c.state === "melting" ? rand(60, W - 120) : c.x,
+          y: c.state === "flying" || c.state === "carried" ? rand(GROUND_Y, MAX_Y) : c.y,
           speechBubble: undefined, speechTimer: 0,
         };
       }
