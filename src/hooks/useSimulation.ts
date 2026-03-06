@@ -205,7 +205,7 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
         return {
           ...c, state: "running" as CharacterState, stateTimer: 0,
           isFlying: false, targetId: undefined, carriedById: undefined,
-          meetingX: undefined, meetingY: undefined,
+          meetingX: undefined, meetingY: undefined, scale: 1,
           vx: randSign() * rand(0.8, 1.6), vy: randSign() * rand(0.1, 0.3),
           direction: (Math.random() > 0.5 ? "right" : "left") as Direction,
           x: c.state === "melting" ? rand(60, W - 120) : c.x,
@@ -255,15 +255,15 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
   }, []);
 
   const paulRampage = useCallback(() => {
+    // Phase 1: Paul grows into a huge dinosaur, everyone panics
     setCharacters(prev => {
       const paul = prev.find(c => c.name.toLowerCase() === "paul");
       if (!paul) return prev;
       const others = prev.filter(c => c.name.toLowerCase() !== "paul");
       if (others.length === 0) return prev;
-      // Paul flies, everyone else panics, then Paul chases and fights them all
       return prev.map(c => {
         if (c.name.toLowerCase() === "paul") {
-          return { ...c, isFlying: true, state: "flying" as CharacterState, stateTimer: 200, vx: randSign() * rand(3, 5), speechBubble: "ROARRR!", speechTimer: 300 };
+          return { ...c, isFlying: true, state: "flying" as CharacterState, stateTimer: 250, vx: randSign() * rand(3, 5), speechBubble: "ROARRR! 🦖", speechTimer: 400, scale: 2.5 };
         }
         return {
           ...c, state: "panic" as CharacterState, stateTimer: 60,
@@ -272,13 +272,24 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
         };
       });
     });
-    // After panic, Paul fights everyone
+    // Phase 2: Paul grows even bigger
+    setTimeout(() => {
+      setCharacters(prev => prev.map(c => {
+        if (c.name.toLowerCase() === "paul") {
+          return { ...c, scale: 3.5, speechBubble: "LOSERS! 🦖", speechTimer: 300 };
+        }
+        return c;
+      }));
+    }, 2000);
+    // Phase 3: Paul fights everyone and always wins
     setTimeout(() => {
       setCharacters(prev => {
         const paul = prev.find(c => c.name.toLowerCase() === "paul");
         if (!paul) return prev;
         return prev.map(c => {
-          if (c.name.toLowerCase() === "paul") return c;
+          if (c.name.toLowerCase() === "paul") {
+            return { ...c, speechBubble: "LOSER! 💀", speechTimer: 300 };
+          }
           if (c.id.startsWith("ian-bot-")) return c;
           fightResultRef.current.set(paul.id, "winner");
           fightResultRef.current.set(c.id, "loser");
@@ -287,6 +298,15 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
         });
       });
     }, 3500);
+    // Phase 4: Paul shrinks back to normal after rampage
+    setTimeout(() => {
+      setCharacters(prev => prev.map(c => {
+        if (c.name.toLowerCase() === "paul") {
+          return { ...c, scale: 1, speechBubble: "GG EZ 😎", speechTimer: 200 };
+        }
+        return c;
+      }));
+    }, 8000);
   }, []);
 
   const chaosMode = useCallback(() => {

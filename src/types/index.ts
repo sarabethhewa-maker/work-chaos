@@ -25,6 +25,7 @@ export interface Character {
   meetingY?: number;
   shelterX?: number;
   shelterY?: number;
+  scale?: number;
 }
 
 export interface LavaBall {

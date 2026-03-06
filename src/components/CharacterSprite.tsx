@@ -78,7 +78,7 @@ export default function CharacterSprite({ character, frame, onClick, isSelected,
   return (
     <div
       className={`character ${isSelected ? "selected" : ""} ${onClick ? "clickable" : ""}`}
-      style={{ left: x, top: y, transform: `scaleX(${flipped ? -1 : 1})`, opacity: isMelting ? Math.max(0.1, 1 - meltProgress * 0.8) * fogOpacity : fogOpacity, transition: "opacity 0.5s" }}
+      style={{ left: x, top: y, transform: `scaleX(${flipped ? -1 : 1}) scale(${character.scale ?? 1})`, transformOrigin: "bottom center", opacity: isMelting ? Math.max(0.1, 1 - meltProgress * 0.8) * fogOpacity : fogOpacity, transition: "opacity 0.5s, transform 0.5s" }}
       onClick={onClick}
       title={name}
     >
