@@ -33,6 +33,12 @@ export default function Home() {
   const [muted, setMuted] = useState(false);
   const [ianArmy, setIanArmy] = useState(false);
   const ianArmyRef = useRef<{ id: number; x: number; y: number; vx: number; vy: number; size: number; chantDelay: number }[]>([]);
+  const [paulRampage, setPaulRampage] = useState(false);
+  const paulRampageRef = useRef<{
+    paulFace: string;
+    victims: { id: number; name: string; faceUrl: string; x: number; y: number; grabDelay: number; throwAngle: number; throwDist: number; state: "waiting" | "grabbed" | "thrown" }[];
+  } | null>(null);
+  const [paulTick, setPaulTick] = useState(0);
 
   const {
     characters, pets, lavaBalls, snowballs, addCharacter, removeCharacter, updateCharacterFace,
@@ -121,6 +127,46 @@ export default function Home() {
     setMode("none"); setSelected([]);
   };
 
+  const triggerPaulRampage = () => {
+    const paul = characters.find(c => c.name.toLowerCase() === "paul");
+    if (!paul) { showToast("⚠️ Add Paul first!"); return; }
+    if (paulRampage) return;
+    const others = characters.filter(c => c.name.toLowerCase() !== "paul");
+    if (others.length === 0) { showToast("⚠️ Add more people for Paul to throw!"); return; }
+    const victims = others.map((c, i) => ({
+      id: i, name: c.name, faceUrl: c.faceUrl,
+      x: 15 + Math.random() * 70,
+      y: 50 + Math.random() * 35,
+      grabDelay: 1.5 + i * 0.8 + Math.random() * 0.5,
+      throwAngle: -30 - Math.random() * 120,
+      throwDist: 600 + Math.random() * 800,
+      state: "waiting" as const,
+    }));
+    paulRampageRef.current = { paulFace: paul.faceUrl, victims };
+    setPaulRampage(true);
+    setPaulTick(0);
+  };
+
+  useEffect(() => {
+    if (!paulRampage) return;
+    const start = Date.now();
+    let rafId: number;
+    const tick = () => {
+      const elapsed = (Date.now() - start) / 1000;
+      setPaulTick(elapsed);
+      if (paulRampageRef.current) {
+        paulRampageRef.current.victims.forEach(v => {
+          if (v.state === "waiting" && elapsed > v.grabDelay) v.state = "grabbed";
+          if (v.state === "grabbed" && elapsed > v.grabDelay + 0.6) v.state = "thrown";
+        });
+      }
+      if (elapsed < 12) rafId = requestAnimationFrame(tick);
+      else setPaulRampage(false);
+    };
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [paulRampage]);
+
   const triggerIanArmy = () => {
     const ian = characters.find(c => c.name.toLowerCase() === "ian");
     if (!ian) { showToast("⚠️ Add Ian first!"); return; }
@@ -178,7 +224,7 @@ export default function Home() {
 
       {/* Special Buttons */}
       <div style={{ display: "flex", justifyContent: "center", gap: "16px", margin: "12px 0", flexWrap: "wrap" }}>
-        <a href="/paul" className="paul-rampage-btn">🦖 PAUL RAMPAGE</a>
+        <button onClick={triggerPaulRampage} className="paul-rampage-btn">🦖 PAUL RAMPAGE</button>
         <button onClick={triggerIanArmy} className="ian-army-btn">🤖 IAN BOT ARMY</button>
       </div>
 
@@ -288,6 +334,104 @@ export default function Home() {
       </div>
 
       {toast && <div className="toast">{toast}</div>}
+
+      {/* Paul Rampage Overlay */}
+      {paulRampage && paulRampageRef.current && (() => {
+        const data = paulRampageRef.current!;
+        const paulX = 10 + Math.min(paulTick * 6, 70);
+        const paulScale = Math.min(1, paulTick / 1.5);
+        const isRoaring = data.victims.some(v => v.state === "grabbed");
+        const allThrown = data.victims.every(v => v.state === "thrown");
+        return (
+          <div className="paul-rampage-overlay" style={{ animation: paulTick > 11 ? "paulOverlayOut 1s forwards" : undefined }}>
+            <div className="paul-rampage-shake" style={{ animation: isRoaring ? "paulScreenShake 0.1s infinite" : "none" }}>
+              {/* Title */}
+              <div className="paul-rampage-title">
+                {allThrown ? "🦖 PAUL WINS 🦖" : "🦖 PAUL RAMPAGE 🦖"}
+              </div>
+
+              {/* Victims */}
+              {data.victims.map(v => {
+                if (v.state === "waiting") {
+                  return (
+                    <div key={v.id} className="paul-victim" style={{ left: `${v.x}%`, top: `${v.y}%` }}>
+                      <img src={v.faceUrl} alt={v.name} className="paul-victim-face" />
+                      <span className="paul-victim-name">{v.name}</span>
+                      <span className="paul-victim-panic">😰</span>
+                    </div>
+                  );
+                }
+                if (v.state === "grabbed") {
+                  return (
+                    <div key={v.id} className="paul-victim paul-victim-grabbed" style={{ left: `${paulX + 8}%`, top: "25%" }}>
+                      <img src={v.faceUrl} alt={v.name} className="paul-victim-face" />
+                      <span className="paul-victim-name">{v.name}</span>
+                      <span className="paul-victim-panic">😱</span>
+                    </div>
+                  );
+                }
+                const throwTime = paulTick - (v.grabDelay + 0.6);
+                const throwProg = Math.min(throwTime / 1.2, 1);
+                const rad = (v.throwAngle * Math.PI) / 180;
+                const tx = v.x + Math.cos(rad) * v.throwDist * throwProg;
+                const ty = v.y + Math.sin(rad) * v.throwDist * throwProg - 200 * throwProg * (1 - throwProg);
+                const spin = throwProg * 1080;
+                return (
+                  <div key={v.id} className="paul-victim paul-victim-thrown" style={{
+                    left: `${tx}%`, top: `${ty}%`,
+                    transform: `rotate(${spin}deg) scale(${1 - throwProg * 0.5})`,
+                    opacity: 1 - throwProg * 0.8,
+                  }}>
+                    <img src={v.faceUrl} alt={v.name} className="paul-victim-face" />
+                    <span className="paul-victim-panic">💀</span>
+                  </div>
+                );
+              })}
+
+              {/* Paul the Dino */}
+              <div className="paul-dino" style={{
+                left: `${paulX}%`,
+                transform: `scale(${paulScale})`,
+              }}>
+                <div className="paul-dino-body">
+                  <img src={data.paulFace} alt="Paul" className="paul-dino-face" />
+                  <svg width="280" height="320" viewBox="0 0 280 320" className="paul-dino-svg">
+                    {/* Body */}
+                    <ellipse cx="140" cy="200" rx="90" ry="110" fill="#2d8a4e" />
+                    {/* Belly */}
+                    <ellipse cx="140" cy="220" rx="60" ry="80" fill="#4ade80" />
+                    {/* Head shape behind face */}
+                    <circle cx="140" cy="75" r="65" fill="#2d8a4e" />
+                    {/* Spikes */}
+                    <polygon points="100,20 110,0 120,20" fill="#166534" />
+                    <polygon points="125,10 135,-10 145,10" fill="#166534" />
+                    <polygon points="150,15 160,-5 170,20" fill="#166534" />
+                    {/* Teeth */}
+                    <polygon points="100,110 108,130 116,110" fill="white" />
+                    <polygon points="120,112 128,134 136,112" fill="white" />
+                    <polygon points="145,112 153,134 161,112" fill="white" />
+                    <polygon points="165,110 173,130 181,110" fill="white" />
+                    {/* Tiny arms */}
+                    <g className={isRoaring ? "paul-arms-grab" : ""}>
+                      <rect x="48" y="170" width="30" height="14" rx="6" fill="#2d8a4e" transform="rotate(-20 48 170)" />
+                      <rect x="202" y="170" width="30" height="14" rx="6" fill="#2d8a4e" transform="rotate(20 232 170)" />
+                      <circle cx="42" cy="164" r="8" fill="#2d8a4e" />
+                      <circle cx="238" cy="164" r="8" fill="#2d8a4e" />
+                    </g>
+                    {/* Legs */}
+                    <rect x="90" y="290" width="30" height="30" rx="8" fill="#2d8a4e" />
+                    <rect x="160" y="290" width="30" height="30" rx="8" fill="#2d8a4e" />
+                    {/* Tail */}
+                    <path d="M 50 240 Q 0 250, -20 220 Q -35 200, -15 190" stroke="#2d8a4e" strokeWidth="24" fill="none" strokeLinecap="round" />
+                  </svg>
+                  {isRoaring && <div className="paul-roar">ROAR!!!</div>}
+                  {allThrown && <div className="paul-roar paul-victory">HAHAHA!</div>}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Ian Bot Army Overlay */}
       {ianArmy && (() => {
