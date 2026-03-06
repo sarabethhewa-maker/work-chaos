@@ -217,6 +217,78 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
     }));
   }, []);
 
+  const ianBotArmy = useCallback(() => {
+    setCharacters(prev => {
+      const ian = prev.find(c => c.name.toLowerCase() === "ian");
+      if (!ian) return prev;
+      const bots: Character[] = [];
+      for (let i = 0; i < 200; i++) {
+        bots.push({
+          id: `ian-bot-${Date.now()}-${i}`,
+          name: "Ian",
+          faceUrl: ian.faceUrl,
+          x: rand(10, W - 60),
+          y: rand(GROUND_Y, MAX_Y),
+          vx: randSign() * rand(2, 4),
+          vy: randSign() * rand(0.3, 0.8),
+          direction: Math.random() > 0.5 ? "right" as Direction : "left" as Direction,
+          state: "running" as CharacterState,
+          stateTimer: 0,
+          color: SHIRT_COLORS[i % SHIRT_COLORS.length],
+          skinTone: ian.skinTone,
+          speechBubble: "IAN!",
+          speechTimer: 9999,
+        });
+      }
+      // Pair them up chasing each other
+      const allBots = [...bots];
+      for (let i = 0; i < allBots.length - 1; i += 2) {
+        allBots[i] = { ...allBots[i], state: "chasing" as CharacterState, stateTimer: 200, targetId: allBots[i + 1].id };
+        allBots[i + 1] = { ...allBots[i + 1], state: "chasing" as CharacterState, stateTimer: 200, targetId: allBots[i].id };
+      }
+      return [...prev, ...allBots];
+    });
+    // Remove bots after 10 seconds
+    setTimeout(() => {
+      setCharacters(prev => prev.filter(c => !c.id.startsWith("ian-bot-")));
+    }, 10000);
+  }, []);
+
+  const paulRampage = useCallback(() => {
+    setCharacters(prev => {
+      const paul = prev.find(c => c.name.toLowerCase() === "paul");
+      if (!paul) return prev;
+      const others = prev.filter(c => c.name.toLowerCase() !== "paul");
+      if (others.length === 0) return prev;
+      // Paul flies, everyone else panics, then Paul chases and fights them all
+      return prev.map(c => {
+        if (c.name.toLowerCase() === "paul") {
+          return { ...c, isFlying: true, state: "flying" as CharacterState, stateTimer: 200, vx: randSign() * rand(3, 5), speechBubble: "ROARRR!", speechTimer: 300 };
+        }
+        return {
+          ...c, state: "panic" as CharacterState, stateTimer: 60,
+          vx: randSign() * rand(4, 7), vy: randSign() * rand(1, 3),
+          speechBubble: "HELP!!!", speechTimer: 180,
+        };
+      });
+    });
+    // After panic, Paul fights everyone
+    setTimeout(() => {
+      setCharacters(prev => {
+        const paul = prev.find(c => c.name.toLowerCase() === "paul");
+        if (!paul) return prev;
+        return prev.map(c => {
+          if (c.name.toLowerCase() === "paul") return c;
+          if (c.id.startsWith("ian-bot-")) return c;
+          fightResultRef.current.set(paul.id, "winner");
+          fightResultRef.current.set(c.id, "loser");
+          punchTickRef.current.set(`${paul.id}-${c.id}`, 0);
+          return { ...c, state: "fighting" as CharacterState, stateTimer: 45, targetId: paul.id, vx: 0, vy: 0 };
+        });
+      });
+    }, 3500);
+  }, []);
+
   const chaosMode = useCallback(() => {
     setCharacters(prev => prev.map(c => ({
       ...c, vx: randSign() * rand(8, 16), vy: randSign() * rand(2, 5),
@@ -621,6 +693,6 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
     addCharacter, removeCharacter, updateCharacterFace,
     startFight, startChase, startFly, startCartwheel,
     startDance, startNap, startMeeting, startPanic, startPromote,
-    sayPhrase, allCartwheel, allFight, chaosMode, reviveAll,
+    sayPhrase, allCartwheel, allFight, chaosMode, reviveAll, ianBotArmy, paulRampage,
   };
 }
