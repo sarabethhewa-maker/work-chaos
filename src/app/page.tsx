@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useSimulation } from "@/hooks/useSimulation";
+import { useSounds } from "@/hooks/useSounds";
 import EnvBackground from "@/components/EnvBackground";
 import CharacterSprite from "@/components/CharacterSprite";
 import PetSprite from "@/components/PetSprite";
@@ -29,6 +30,7 @@ export default function Home() {
   const [toast, setToast] = useState<string | null>(null);
   const [weather, setWeather] = useState<WeatherState>("clear");
   const [windDirection] = useState<"left" | "right">(Math.random() > 0.5 ? "right" : "left");
+  const [muted, setMuted] = useState(false);
 
   const {
     characters, pets, lavaBalls, snowballs, addCharacter, removeCharacter, updateCharacterFace,
@@ -36,6 +38,8 @@ export default function Home() {
     startDance, startNap, startMeeting, startPanic, startPromote,
     sayPhrase, allCartwheel, allFight, chaosMode,
   } = useSimulation(weather, env);
+
+  useSounds(characters, muted);
 
   useEffect(() => {
     let id: number;
@@ -188,6 +192,14 @@ export default function Home() {
         {mode !== "none" && characters.length >= 2 && (
           <button onClick={handleSelectAll} className="tool-btn active">🔥 ALL</button>
         )}
+      </div>
+
+      {/* Sound mute toggle */}
+      <div className="toolbar sound-toolbar">
+        <span className="toolbar-label">SOUND</span>
+        <button onClick={() => setMuted(!muted)} className={`tool-btn ${muted ? "active" : ""}`}>
+          {muted ? "MUTED" : "ON"}
+        </button>
       </div>
 
       {/* Weather toolbar */}

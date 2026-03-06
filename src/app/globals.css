@@ -124,6 +124,21 @@ body {
   border-color: var(--accent3); color: var(--accent3);
 }
 
+/* ── Sound Toolbar ── */
+.sound-toolbar {
+  border-color: rgba(253,121,168,0.2);
+}
+.sound-toolbar .toolbar-label {
+  color: var(--pink);
+}
+.sound-toolbar .tool-btn.active {
+  background: rgba(253,121,168,0.12); border-color: var(--pink);
+  color: var(--pink); box-shadow: 0 0 12px rgba(253,121,168,0.2);
+}
+.sound-toolbar .tool-btn:hover {
+  border-color: var(--pink); color: var(--pink);
+}
+
 /* ── Character Selector ── */
 .char-selector {
   display: flex; gap: 6px; flex-wrap: wrap;

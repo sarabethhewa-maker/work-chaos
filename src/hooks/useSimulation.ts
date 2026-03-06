@@ -3,6 +3,7 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import type { Character, CharacterState, Direction, Pet, WeatherState, LavaBall, Snowball } from "@/types";
 import { SHIRT_COLORS, SKIN_TONES, WORK_PHRASES, SHELTER_ZONES } from "@/types";
 import { DEFAULT_CHARACTERS } from "@/data/defaultCharacters";
+import { playPunch, playThwack, playOof } from "@/lib/sounds";
 
 const W = 900;
 const H = 500;
@@ -39,40 +40,6 @@ function makePet(index: number): Pet {
     direction: Math.random() > 0.5 ? "right" : "left",
     color: ["#c8a882","#4a3728","#f0d0a0","#888","#fff","#f5a623"][Math.floor(Math.random()*6)],
   };
-}
-
-// Sound synthesis
-function playPunch() {
-  try {
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.setValueAtTime(150, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.15);
-    gain.gain.setValueAtTime(0.4, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.2);
-  } catch {}
-}
-
-function playOof() {
-  try {
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.setValueAtTime(300, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.3);
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.35);
-  } catch {}
 }
 
 const WIN_PHRASES = ["DESTROYED!", "TOO EASY!", "L + RATIO \u{1F480}", "GET REKT!", "GG NO RE"];
@@ -466,7 +433,7 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
                 const pairKey = c.id < c.targetId ? `${c.id}-${c.targetId}` : `${c.targetId}-${c.id}`;
                 const lastPunch = punchTickRef.current.get(pairKey) ?? 0;
                 if (45 - stateTimer - lastPunch >= 10) {
-                  playPunch();
+                  if (Math.random() > 0.5) playPunch(); else playThwack();
                   punchTickRef.current.set(pairKey, 45 - stateTimer);
                 }
               }
