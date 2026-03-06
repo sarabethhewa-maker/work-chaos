@@ -153,6 +153,11 @@ export default function Home() {
         )}
       </div>
 
+      {/* Paul Rampage */}
+      <div style={{ display: "flex", justifyContent: "center", margin: "12px 0" }}>
+        <a href="/paul" className="paul-rampage-btn">🦖 PAUL RAMPAGE</a>
+      </div>
+
       {/* Sound mute toggle */}
       <div className="toolbar sound-toolbar">
         <span className="toolbar-label">SOUND</span>
