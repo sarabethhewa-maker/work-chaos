@@ -78,7 +78,7 @@ export default function CharacterSprite({ character, frame, onClick, isSelected,
   return (
     <div
       className={`character ${isSelected ? "selected" : ""} ${onClick ? "clickable" : ""}`}
-      style={{ left: x, top: y, transform: `scaleX(${flipped ? -1 : 1})`, opacity: fogOpacity, transition: "opacity 0.5s" }}
+      style={{ left: x, top: y, transform: `scaleX(${flipped ? -1 : 1})`, opacity: isMelting ? Math.max(0.1, 1 - meltProgress * 0.8) * fogOpacity : fogOpacity, transition: "opacity 0.5s" }}
       onClick={onClick}
       title={name}
     >
@@ -96,7 +96,7 @@ export default function CharacterSprite({ character, frame, onClick, isSelected,
         </div>
       )}
 
-      <svg width="56" height="96" viewBox="0 0 56 96"
+      <svg width="56" height="96" viewBox="0 0 56 96" overflow="visible"
         style={{
           filter: `drop-shadow(2px 4px 5px rgba(0,0,0,0.35))${isSelected ? " drop-shadow(0 0 8px #fff)" : ""}`,
           transform: isCartwheel
@@ -108,7 +108,7 @@ export default function CharacterSprite({ character, frame, onClick, isSelected,
             : isKnockedOut
             ? `rotate(90deg) translateX(10px) translateY(15px)`
             : isMelting
-            ? `scaleY(${1 - meltProgress * 0.7}) scaleX(${1 + meltProgress * 0.3}) translateY(${meltProgress * 30}px)`
+            ? `scaleY(${1 - meltProgress * 0.95}) scaleX(${1 + meltProgress * 0.5}) translateY(${meltProgress * 40}px)`
             : `rotate(${isTripping ? 75 : isGettingUp ? 22 : isWobble ? wobbleSway : windLean}deg) translateY(${stopped ? 0 : -bodyBob}px) translateX(${panicShake}px)`,
           transformOrigin: "28px 60px",
           transition: isTripping ? "transform 0.12s ease-out" : "none",
@@ -294,9 +294,16 @@ export default function CharacterSprite({ character, frame, onClick, isSelected,
         {/* Rain umbrella */}
         {weather === "rain" && !isNapping && !isKnockedOut && !isMelting && (
           <>
-            <line x1="28" y1="-10" x2="28" y2={headCY - headRY - 2} stroke="#555" strokeWidth="1.5"/>
-            <path d={`M 8,-10 Q 28,-28 48,-10`} fill="#6b4ce6" stroke="#5538c8" strokeWidth="1"/>
-            <line x1="8" y1="-10" x2="48" y2="-10" stroke="#5538c8" strokeWidth="1"/>
+            {/* Handle */}
+            <line x1="28" y1="-6" x2="28" y2={headCY - headRY + 1} stroke="#6b4400" strokeWidth="2" strokeLinecap="round"/>
+            {/* Canopy — dome */}
+            <path d="M 6,-6 Q 28,-30 50,-6 Z" fill="#6b4ce6" stroke="#4a2db8" strokeWidth="1.2"/>
+            {/* Canopy ribs */}
+            <line x1="18" y1="-6" x2="22" y2="-22" stroke="#5538c8" strokeWidth="0.6" opacity="0.5"/>
+            <line x1="28" y1="-6" x2="28" y2="-24" stroke="#5538c8" strokeWidth="0.6" opacity="0.5"/>
+            <line x1="38" y1="-6" x2="34" y2="-22" stroke="#5538c8" strokeWidth="0.6" opacity="0.5"/>
+            {/* Handle hook */}
+            <path d="M 28,-6 Q 28,-2 24,-2" fill="none" stroke="#6b4400" strokeWidth="1.5" strokeLinecap="round"/>
           </>
         )}
 
@@ -317,15 +324,29 @@ export default function CharacterSprite({ character, frame, onClick, isSelected,
         {/* Melting FX */}
         {isMelting && (
           <>
-            <text x="18" y="8" fontSize="14">😵</text>
-            {/* Puddle underneath */}
-            <ellipse cx="28" cy={92 + meltProgress * 4} rx={14 + meltProgress * 12} ry={3 + meltProgress * 3}
-              fill={character.skinTone} opacity={meltProgress * 0.6}/>
-            {/* Steam particles */}
+            <text x="16" y="6" fontSize="16">😵</text>
+            {/* Puddle underneath — grows as character melts */}
+            <ellipse cx="28" cy={94} rx={10 + meltProgress * 18} ry={2 + meltProgress * 5}
+              fill={color} opacity={0.3 + meltProgress * 0.5}/>
+            <ellipse cx="28" cy={94} rx={6 + meltProgress * 12} ry={1.5 + meltProgress * 3}
+              fill={character.skinTone} opacity={0.4 + meltProgress * 0.4}/>
+            {/* Drip blobs falling from body */}
+            {[0,1,2,3].map(i => {
+              const dripX = 16 + i * 8 + Math.sin(frame * 0.03 + i * 2) * 3;
+              const dripCycle = ((frame * 0.8 + i * 25) % 60) / 60;
+              const dripY = 50 + dripCycle * 44;
+              const dripOpacity = meltProgress * (1 - dripCycle) * 0.8;
+              return <ellipse key={i} cx={dripX} cy={dripY} rx={2.5} ry={3.5}
+                fill={i % 2 === 0 ? color : character.skinTone} opacity={dripOpacity}/>;
+            })}
+            {/* Steam/heat waves rising */}
             {[0,1,2].map(i => {
-              const steamY = 30 - ((frame * 0.5 + i * 30) % 40);
-              const steamX = 14 + i * 14 + Math.sin(frame * 0.05 + i) * 4;
-              return <text key={i} x={steamX} y={steamY} fontSize="8" opacity={0.3 + meltProgress * 0.4}>~</text>;
+              const steamCycle = ((frame * 0.4 + i * 40) % 80) / 80;
+              const steamY = 90 - steamCycle * 70;
+              const steamX = 12 + i * 16 + Math.sin(frame * 0.04 + i) * 6;
+              const steamOp = meltProgress * Math.sin(steamCycle * Math.PI) * 0.7;
+              return <text key={i} x={steamX} y={steamY} fontSize="12" opacity={steamOp}
+                fill="#ff6633">~</text>;
             })}
           </>
         )}
