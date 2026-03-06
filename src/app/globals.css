@@ -138,6 +138,36 @@ body {
   50% { box-shadow: 0 0 30px rgba(0,0,255,0.6), 0 0 80px rgba(0,0,255,0.3); }
 }
 
+/* ── Ryan Cats Button ── */
+.ryan-cats-btn {
+  display: inline-block;
+  padding: 16px 48px;
+  font-family: var(--font-mono), "Space Mono", monospace;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: #fff;
+  background: linear-gradient(135deg, #f5a623, #e67e22, #d35400);
+  border: 3px solid #f5a623;
+  border-radius: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(245, 166, 35, 0.4), 0 0 60px rgba(245, 166, 35, 0.15), inset 0 1px 0 rgba(255,255,255,0.2);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  transition: all 0.15s;
+  animation: ryan-pulse 1.5s ease-in-out infinite;
+}
+.ryan-cats-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px rgba(245, 166, 35, 0.6), 0 0 80px rgba(245, 166, 35, 0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+  border-color: #f7b731;
+}
+.ryan-cats-btn:active { transform: scale(0.97); }
+@keyframes ryan-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(245,166,35,0.4), 0 0 60px rgba(245,166,35,0.15); }
+  50% { box-shadow: 0 0 30px rgba(245,166,35,0.6), 0 0 80px rgba(245,166,35,0.3); }
+}
+
 /* ── Toolbar ── */
 .toolbar {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;

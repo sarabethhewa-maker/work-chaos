@@ -309,6 +309,36 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
     }, 8000);
   }, []);
 
+  const ryanAndHisCats = useCallback(() => {
+    // Ryan dances happily while 20 cats flood the stage meowing
+    setCharacters(prev => prev.map(c => {
+      if (c.name.toLowerCase() === "ryan") {
+        return { ...c, state: "dancing" as CharacterState, stateTimer: 200, vx: 0, vy: 0, speechBubble: "MY BABIES! 🐱", speechTimer: 400 };
+      }
+      return c;
+    }));
+    // Spawn 20 cats
+    const catColors = ["#c8a882", "#4a3728", "#f0d0a0", "#888", "#fff", "#f5a623", "#ff9f43", "#2d3436", "#dfe6e9", "#fab1a0"];
+    const newCats: Pet[] = [];
+    for (let i = 0; i < 20; i++) {
+      newCats.push({
+        id: `ryan-cat-${Date.now()}-${i}`,
+        type: "cat",
+        x: rand(20, W - 60),
+        y: rand(GROUND_Y + 10, MAX_Y + 10),
+        vx: randSign() * rand(0.8, 2.0),
+        vy: randSign() * rand(0.1, 0.5),
+        direction: Math.random() > 0.5 ? "right" as Direction : "left" as Direction,
+        color: catColors[i % catColors.length],
+      });
+    }
+    setPets(prev => [...prev, ...newCats]);
+    // Remove the extra cats after 10 seconds
+    setTimeout(() => {
+      setPets(prev => prev.filter(p => !p.id.startsWith("ryan-cat-")));
+    }, 10000);
+  }, []);
+
   const chaosMode = useCallback(() => {
     setCharacters(prev => prev.map(c => ({
       ...c, vx: randSign() * rand(8, 16), vy: randSign() * rand(2, 5),
@@ -713,6 +743,6 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
     addCharacter, removeCharacter, updateCharacterFace,
     startFight, startChase, startFly, startCartwheel,
     startDance, startNap, startMeeting, startPanic, startPromote,
-    sayPhrase, allCartwheel, allFight, chaosMode, reviveAll, ianBotArmy, paulRampage,
+    sayPhrase, allCartwheel, allFight, chaosMode, reviveAll, ianBotArmy, paulRampage, ryanAndHisCats,
   };
 }

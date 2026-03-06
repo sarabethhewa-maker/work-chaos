@@ -36,7 +36,7 @@ export default function Home() {
     characters, pets, lavaBalls, snowballs, addCharacter, removeCharacter, updateCharacterFace,
     startFight, startChase, startFly, startCartwheel,
     startDance, startNap, startPanic,
-    sayPhrase, allCartwheel, allFight, reviveAll, ianBotArmy, paulRampage,
+    sayPhrase, allCartwheel, allFight, reviveAll, ianBotArmy, paulRampage, ryanAndHisCats,
   } = useSimulation(weather, env);
 
   useSounds(characters, muted);
@@ -134,6 +134,13 @@ export default function Home() {
     showToast("🤖 IAN BOT ARMY DEPLOYED!");
   };
 
+  const triggerRyanCats = () => {
+    const ryan = characters.find(c => c.name.toLowerCase() === "ryan");
+    if (!ryan) { showToast("⚠️ Add Ryan first!"); return; }
+    ryanAndHisCats();
+    showToast("🐱 RYAN AND HIS CATS!");
+  };
+
   return (
     <main className="main">
       <header className="header">
@@ -172,6 +179,7 @@ export default function Home() {
       <div style={{ display: "flex", justifyContent: "center", gap: "16px", margin: "12px 0", flexWrap: "wrap" }}>
         <button onClick={triggerPaulRampage} className="paul-rampage-btn">🦖 PAUL RAMPAGE</button>
         <button onClick={triggerIanArmy} className="ian-army-btn">🤖 IAN BOT ARMY</button>
+        <button onClick={triggerRyanCats} className="ryan-cats-btn">🐱 RYAN AND HIS CATS</button>
       </div>
 
       {/* Sound mute toggle */}
