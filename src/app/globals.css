@@ -265,41 +265,56 @@ body {
 
 /* ── Add bar (horizontal, top) ── */
 .add-bar {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
   background: var(--surface); border-radius: 8px; padding: 8px 14px;
   border: 1px solid var(--border2); margin-bottom: 10px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+.add-bar-section {
+  display: flex; align-items: center; gap: 8px;
+}
+.add-bar-divider {
+  width: 1px; height: 36px; background: var(--border2); margin: 0 4px; flex-shrink: 0;
 }
 .add-bar-label {
   font-family: var(--font-mono), monospace; font-size: 10px; font-weight: 700;
   color: var(--accent); letter-spacing: 2px; white-space: nowrap;
 }
+.add-bar-select {
+  padding: 5px 8px; min-width: 80px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 6px; color: var(--text);
+  font-family: var(--font-mono), monospace; font-size: 11px; font-weight: 700;
+  outline: none; cursor: pointer;
+}
+.add-bar-select:focus { border-color: var(--accent); }
 .add-bar-drop {
   width: 48px; height: 48px; flex-shrink: 0;
   border: 1.5px dashed var(--border2); border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; transition: all 0.13s; overflow: hidden;
 }
+.add-bar-drop.small { width: 38px; height: 38px; }
 .add-bar-drop:hover, .add-bar-drop.dragging { border-color: var(--accent); background: rgba(0,255,136,0.04); }
 .add-bar-drop.has-preview { border-style: solid; border-color: var(--accent2); }
-.add-bar-drop-hint { font-size: 20px; }
+.add-bar-drop-hint { font-size: 16px; }
 .add-bar-preview { width: 100%; height: 100%; object-fit: cover; }
 
 .add-bar-name {
-  width: 140px; padding: 7px 10px;
+  width: 120px; padding: 6px 8px;
   background: var(--surface2); border: 1px solid var(--border2);
   border-radius: 6px; color: var(--text);
-  font-family: var(--font-mono), monospace; font-size: 12px; font-weight: 700;
+  font-family: var(--font-mono), monospace; font-size: 11px; font-weight: 700;
   outline: none; transition: border-color 0.13s; letter-spacing: 0.5px;
 }
 .add-bar-name:focus { border-color: var(--accent); }
 .add-bar-name::placeholder { color: var(--text-muted); }
 
 .add-bar-btn {
-  padding: 7px 14px; white-space: nowrap;
+  padding: 6px 12px; white-space: nowrap;
   background: linear-gradient(135deg, rgba(0,255,136,0.2), rgba(0,210,255,0.2));
   border: 1px solid var(--accent); border-radius: 6px; color: var(--accent);
-  font-family: var(--font-mono), monospace; font-weight: 700; font-size: 11px;
+  font-family: var(--font-mono), monospace; font-weight: 700; font-size: 10px;
   cursor: pointer; transition: all 0.13s; letter-spacing: 1px;
 }
 .add-bar-btn:hover:not(:disabled) { background: rgba(0,255,136,0.25); box-shadow: 0 0 12px rgba(0,255,136,0.2); }

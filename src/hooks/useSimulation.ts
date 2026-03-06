@@ -2,6 +2,7 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import type { Character, CharacterState, Direction, Pet, WeatherState, LavaBall } from "@/types";
 import { SHIRT_COLORS, SKIN_TONES, WORK_PHRASES, SHELTER_ZONES } from "@/types";
+import { DEFAULT_CHARACTERS } from "@/data/defaultCharacters";
 
 const W = 900;
 const H = 500;
@@ -11,7 +12,7 @@ const MAX_Y = H - 90;
 function rand(a: number, b: number) { return a + Math.random() * (b - a); }
 function randSign() { return Math.random() > 0.5 ? 1 : -1; }
 
-function makeCharacter(id: string, name: string, faceUrl: string, index: number): Character {
+function makeCharacter(id: string, name: string, faceUrl: string, index: number, color?: string): Character {
   return {
     id, name, faceUrl,
     x: rand(60, W - 120),
@@ -21,7 +22,7 @@ function makeCharacter(id: string, name: string, faceUrl: string, index: number)
     direction: Math.random() > 0.5 ? "right" : "left",
     state: "running",
     stateTimer: 0,
-    color: SHIRT_COLORS[index % SHIRT_COLORS.length],
+    color: color ?? SHIRT_COLORS[index % SHIRT_COLORS.length],
     skinTone: SKIN_TONES[index % SKIN_TONES.length],
   };
 }
@@ -40,8 +41,46 @@ function makePet(index: number): Pet {
   };
 }
 
+// Sound synthesis
+function playPunch() {
+  try {
+    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(150, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.4, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.2);
+  } catch {}
+}
+
+function playOof() {
+  try {
+    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(300, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.35);
+  } catch {}
+}
+
+const WIN_PHRASES = ["DESTROYED!", "TOO EASY!", "L + RATIO \u{1F480}", "GET REKT!", "GG NO RE"];
+
 export function useSimulation(weather: WeatherState = "clear", env: string = "garden") {
-  const [characters, setCharacters] = useState<Character[]>([]);
+  const [characters, setCharacters] = useState<Character[]>(
+    DEFAULT_CHARACTERS.map((d, i) => makeCharacter(d.id, d.name, d.faceUrl, i, d.color))
+  );
   const [pets, setPets] = useState<Pet[]>([makePet(0), makePet(1), makePet(2), makePet(3)]);
   const [lavaBalls, setLavaBalls] = useState<LavaBall[]>([]);
   const rafRef = useRef<number>(0);
@@ -50,9 +89,13 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
   const windDirRef = useRef<"left" | "right">(Math.random() > 0.5 ? "right" : "left");
   const lavaIdRef = useRef(0);
 
+  // Fight result tracking: maps character id -> "winner" | "loser"
+  const fightResultRef = useRef<Map<string, "winner" | "loser">>(new Map());
+  // Track punch sound timing per fight pair
+  const punchTickRef = useRef<Map<string, number>>(new Map());
+
   useEffect(() => { weatherRef.current = weather; }, [weather]);
   useEffect(() => { envRef.current = env; }, [env]);
-  // Randomize wind direction when weather changes to wind
   useEffect(() => {
     if (weather === "wind") windDirRef.current = Math.random() > 0.5 ? "right" : "left";
     if (weather !== "lava") setLavaBalls([]);
@@ -69,7 +112,19 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
     setCharacters(prev => prev.filter(c => c.id !== id));
   }, []);
 
+  const updateCharacterFace = useCallback((id: string, faceUrl: string) => {
+    setCharacters(prev => prev.map(c =>
+      c.id === id ? { ...c, faceUrl } : c
+    ));
+  }, []);
+
   const startFight = useCallback((id1: string, id2: string) => {
+    // Randomly pick winner/loser
+    const [winner, loser] = Math.random() > 0.5 ? [id1, id2] : [id2, id1];
+    fightResultRef.current.set(winner, "winner");
+    fightResultRef.current.set(loser, "loser");
+    punchTickRef.current.set(`${id1}-${id2}`, 0);
+
     setCharacters(prev => prev.map(c => {
       if (c.id === id1) return { ...c, state: "fighting" as CharacterState, stateTimer: 180, targetId: id2, vx: 0, vy: 0 };
       if (c.id === id2) return { ...c, state: "fighting" as CharacterState, stateTimer: 180, targetId: id1, vx: 0, vy: 0 };
@@ -160,6 +215,11 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
         const b = shuffled[i + 1].id;
         const ai = result.findIndex(c => c.id === a);
         const bi = result.findIndex(c => c.id === b);
+        // Assign winner/loser
+        const [winner, loser] = Math.random() > 0.5 ? [a, b] : [b, a];
+        fightResultRef.current.set(winner, "winner");
+        fightResultRef.current.set(loser, "loser");
+        punchTickRef.current.set(`${a}-${b}`, 0);
         if (ai >= 0) result[ai] = { ...result[ai], state: "fighting" as CharacterState, stateTimer: 180, targetId: b, vx: 0, vy: 0 };
         if (bi >= 0) result[bi] = { ...result[bi], state: "fighting" as CharacterState, stateTimer: 180, targetId: a, vx: 0, vy: 0 };
       }
@@ -189,12 +249,11 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
         setLavaBalls(prev => {
           let balls = prev.map(b => {
             let { y, vy } = b;
-            vy += 0.15; // gravity
+            vy += 0.15;
             y += vy;
             if (y > MAX_Y + 30) { vy = -vy * 0.6; y = MAX_Y + 30; }
             return { ...b, y, vy };
           }).filter(b => b.y < H + 50);
-          // Spawn new lava balls
           if (Math.random() < 0.04 && balls.length < 25) {
             balls = [...balls, { id: lavaIdRef.current++, x: rand(20, W - 20), y: -20, vy: rand(1, 3) }];
           }
@@ -207,8 +266,6 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
         if (prev.length === 0) return prev;
         const map = new Map(prev.map(c => [c.id, c]));
 
-        // Read lava balls for avoidance — capture from ref-like approach
-        // We'll pass through closure
         return prev.map((c, i) => {
           let { x, y, vx, vy, state, stateTimer, direction, speechTimer, speechBubble } = c;
 
@@ -221,7 +278,6 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
             speechTimer = 160;
           }
 
-          // Weather speed multiplier for running
           const snowMult = w === "snow" ? 0.4 : 1;
           const fogMult = w === "fog" ? 0.6 : 1;
           const weatherMult = snowMult * fogMult;
@@ -314,6 +370,16 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
             return { ...c, stateTimer, speechTimer, speechBubble };
           }
 
+          // KNOCKED-OUT
+          if (state === "knocked-out") {
+            stateTimer--;
+            if (stateTimer <= 0) {
+              fightResultRef.current.delete(c.id);
+              return { ...c, state: "getting-up" as CharacterState, stateTimer: 90, speechBubble: undefined, speechTimer: 0 };
+            }
+            return { ...c, stateTimer, speechTimer, speechBubble };
+          }
+
           // TRIPPING
           if (state === "tripping") {
             stateTimer--;
@@ -321,7 +387,7 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
             return { ...c, speechTimer, speechBubble };
           }
 
-          // GETTING UP — transitions to wobble
+          // GETTING UP
           if (state === "getting-up") {
             stateTimer--;
             if (stateTimer <= 0) {
@@ -330,7 +396,7 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
             return { ...c, stateTimer, speechTimer, speechBubble };
           }
 
-          // WOBBLE — sway side to side for 1 second before running normally
+          // WOBBLE
           if (state === "wobble") {
             stateTimer--;
             x += vx * 0.5; y += vy * 0.5;
@@ -346,18 +412,60 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
             return { ...c, x, y, stateTimer, speechTimer, speechBubble };
           }
 
-          // FIGHTING
+          // FIGHTING — with winner/loser system
           if (state === "fighting") {
             stateTimer--;
             const opponent = c.targetId ? map.get(c.targetId) : undefined;
-            if (opponent && Math.abs(c.x - opponent.x) > 55) {
+            const distToOpponent = opponent ? Math.abs(c.x - opponent.x) : 999;
+
+            if (opponent && distToOpponent > 55) {
+              // Approach phase
               const dx = opponent.x - c.x;
               x += Math.sign(dx) * 0.8;
               direction = dx > 0 ? "right" : "left";
             } else {
+              // Close combat — shake
               x += Math.sin(stateTimer * 0.3) * 0.8;
+
+              // Play punch sound every 30 ticks
+              if (c.targetId) {
+                const pairKey = c.id < c.targetId ? `${c.id}-${c.targetId}` : `${c.targetId}-${c.id}`;
+                const lastPunch = punchTickRef.current.get(pairKey) ?? 0;
+                if (180 - stateTimer - lastPunch >= 30) {
+                  playPunch();
+                  punchTickRef.current.set(pairKey, 180 - stateTimer);
+                }
+              }
             }
-            if (stateTimer <= 0) return { ...c, state: "running" as CharacterState, stateTimer: 0, targetId: undefined, vx: randSign() * rand(1, 2), vy: randSign() * rand(0.15, 0.4), x, direction, speechTimer, speechBubble };
+
+            if (stateTimer <= 0) {
+              const result = fightResultRef.current.get(c.id);
+              // Clean up punch tracking
+              if (c.targetId) {
+                const pairKey = c.id < c.targetId ? `${c.id}-${c.targetId}` : `${c.targetId}-${c.id}`;
+                punchTickRef.current.delete(pairKey);
+              }
+
+              if (result === "winner") {
+                fightResultRef.current.delete(c.id);
+                const phrase = WIN_PHRASES[Math.floor(Math.random() * WIN_PHRASES.length)];
+                return {
+                  ...c, state: "dancing" as CharacterState, stateTimer: 60, targetId: undefined,
+                  vx: 0, vy: 0, x, direction,
+                  speechBubble: phrase, speechTimer: 120,
+                };
+              } else if (result === "loser") {
+                playOof();
+                return {
+                  ...c, state: "knocked-out" as CharacterState, stateTimer: 600, targetId: undefined,
+                  vx: 0, vy: 0, x, direction,
+                  speechBubble: "KO!", speechTimer: 600,
+                };
+              } else {
+                // Fallback (shouldn't happen)
+                return { ...c, state: "running" as CharacterState, stateTimer: 0, targetId: undefined, vx: randSign() * rand(1, 2), vy: randSign() * rand(0.15, 0.4), x, direction, speechTimer, speechBubble };
+              }
+            }
             return { ...c, x, direction, stateTimer, speechTimer, speechBubble };
           }
 
@@ -381,7 +489,6 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
           let runVx = vx * weatherMult;
           let runVy = vy * weatherMult;
 
-          // Wind: push in wind direction, halve speed if going against
           if (w === "wind") {
             const windPush = windDir === "right" ? 0.5 : -0.5;
             runVx += windPush;
@@ -390,7 +497,6 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
             }
           }
 
-          // Rain: move toward shelter
           if (w === "rain") {
             const shelters = SHELTER_ZONES[curEnv] ?? SHELTER_ZONES.garden;
             let nearestShelter = shelters[0];
@@ -411,7 +517,6 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
             }
           }
 
-          // Fog: more random direction changes
           if (w === "fog" && Math.random() < 0.015) {
             vx = randSign() * rand(0.4, 1.0);
             vy = randSign() * rand(0.05, 0.2);
@@ -439,7 +544,6 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
           }
           if (tripped) return { ...c, x, y, vx: 0, vy: 0, state: "tripping" as CharacterState, stateTimer: 60, speechTimer, speechBubble };
 
-          // Snow emoji occasionally
           if (w === "snow" && Math.random() < 0.002 && !speechBubble) {
             speechBubble = "brrr...";
             speechTimer = 80;
@@ -470,7 +574,7 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
 
   return {
     characters, pets, lavaBalls,
-    addCharacter, removeCharacter,
+    addCharacter, removeCharacter, updateCharacterFace,
     startFight, startChase, startFly, startCartwheel,
     startDance, startNap, startMeeting, startPanic, startPromote,
     sayPhrase, allCartwheel, allFight, chaosMode,

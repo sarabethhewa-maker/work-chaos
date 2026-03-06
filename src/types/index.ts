@@ -1,5 +1,5 @@
 export type EnvId = "beach" | "forest" | "mountains" | "racetrack" | "city" | "garden";
-export type CharacterState = "running" | "tripping" | "getting-up" | "wobble" | "fighting" | "flying" | "carried" | "chasing" | "cartwheel" | "dancing" | "napping" | "meeting" | "panic" | "promote";
+export type CharacterState = "running" | "tripping" | "getting-up" | "wobble" | "fighting" | "flying" | "carried" | "chasing" | "cartwheel" | "dancing" | "napping" | "meeting" | "panic" | "promote" | "knocked-out";
 export type WeatherState = "clear" | "rain" | "snow" | "lava" | "wind" | "fog";
 export type Direction = "left" | "right";
 

@@ -34,7 +34,8 @@ export default function CharacterSprite({ character, frame, onClick, isSelected,
   const isPanic = state === "panic";
   const isPromote = state === "promote";
   const isWobble = state === "wobble";
-  const stopped = isTripping || isGettingUp || isFighting || isNapping || isPromote;
+  const isKnockedOut = state === "knocked-out";
+  const stopped = isTripping || isGettingUp || isFighting || isNapping || isPromote || isKnockedOut;
 
   const cartwheelAngle = isCartwheel ? ((120 - stateTimer) / 120) * 720 : 0;
   const danceAngle = isDancing ? Math.sin(frame * 0.15) * 18 : 0;
@@ -102,6 +103,8 @@ export default function CharacterSprite({ character, frame, onClick, isSelected,
             ? `rotate(${danceAngle}deg) translateY(${-bodyBob}px)`
             : isNapping
             ? `rotate(80deg) translateX(10px) translateY(15px)`
+            : isKnockedOut
+            ? `rotate(90deg) translateX(10px) translateY(15px)`
             : `rotate(${isTripping ? 75 : isGettingUp ? 22 : isWobble ? wobbleSway : windLean}deg) translateY(${stopped ? 0 : -bodyBob}px) translateX(${panicShake}px)`,
           transformOrigin: "28px 60px",
           transition: isTripping ? "transform 0.12s ease-out" : "none",
@@ -297,6 +300,21 @@ export default function CharacterSprite({ character, frame, onClick, isSelected,
         {isNapping && <text x="42" y="6" fontSize="12">💤</text>}
         {isMeeting && <text x="42" y="6" fontSize="12">📋</text>}
         {isPanic && <text x="42" y="6" fontSize="14">😱</text>}
+
+        {/* Knocked out: skull + spinning stars + KO text */}
+        {isKnockedOut && (
+          <>
+            <text x="22" y="8" fontSize="14">💀</text>
+            {[0,1,2].map(i => {
+              const starAngle = ((frame * 0.05) + (i / 3) * Math.PI * 2) % (Math.PI * 2);
+              const starR = 18;
+              const sx = headCX + Math.cos(starAngle) * starR;
+              const sy = (headCY - 8) + Math.sin(starAngle) * 8;
+              return <text key={i} x={sx - 5} y={sy} fontSize="10">⭐</text>;
+            })}
+            <text x="10" y={-8} fontSize="16" fontWeight="bold" fill="#ff2222" stroke="#000" strokeWidth="0.5">KO!</text>
+          </>
+        )}
 
         {/* Promote: trophy + confetti */}
         {isPromote && (
