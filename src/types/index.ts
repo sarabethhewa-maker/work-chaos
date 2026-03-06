@@ -1,5 +1,5 @@
 export type EnvId = "beach" | "forest" | "mountains" | "racetrack" | "city" | "garden";
-export type CharacterState = "running" | "tripping" | "getting-up" | "wobble" | "fighting" | "flying" | "carried" | "chasing" | "cartwheel" | "dancing" | "napping" | "meeting" | "panic" | "promote" | "knocked-out";
+export type CharacterState = "running" | "tripping" | "getting-up" | "wobble" | "fighting" | "flying" | "carried" | "chasing" | "cartwheel" | "dancing" | "napping" | "meeting" | "panic" | "promote" | "knocked-out" | "melting";
 export type WeatherState = "clear" | "rain" | "snow" | "lava" | "wind" | "fog";
 export type Direction = "left" | "right";
 
@@ -32,6 +32,17 @@ export interface LavaBall {
   x: number;
   y: number;
   vy: number;
+}
+
+export interface Snowball {
+  id: number;
+  x: number;
+  y: number;
+  startX: number;
+  startY: number;
+  targetX: number;
+  targetY: number;
+  progress: number;
 }
 
 export const SHELTER_ZONES: Record<string, {x: number; y: number}[]> = {

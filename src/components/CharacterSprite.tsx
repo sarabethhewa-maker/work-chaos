@@ -35,7 +35,9 @@ export default function CharacterSprite({ character, frame, onClick, isSelected,
   const isPromote = state === "promote";
   const isWobble = state === "wobble";
   const isKnockedOut = state === "knocked-out";
-  const stopped = isTripping || isGettingUp || isFighting || isNapping || isPromote || isKnockedOut;
+  const isMelting = state === "melting";
+  const meltProgress = isMelting ? (90 - stateTimer) / 90 : 0;
+  const stopped = isTripping || isGettingUp || isFighting || isNapping || isPromote || isKnockedOut || isMelting;
 
   const cartwheelAngle = isCartwheel ? ((120 - stateTimer) / 120) * 720 : 0;
   const danceAngle = isDancing ? Math.sin(frame * 0.15) * 18 : 0;
@@ -105,6 +107,8 @@ export default function CharacterSprite({ character, frame, onClick, isSelected,
             ? `rotate(80deg) translateX(10px) translateY(15px)`
             : isKnockedOut
             ? `rotate(90deg) translateX(10px) translateY(15px)`
+            : isMelting
+            ? `scaleY(${1 - meltProgress * 0.7}) scaleX(${1 + meltProgress * 0.3}) translateY(${meltProgress * 30}px)`
             : `rotate(${isTripping ? 75 : isGettingUp ? 22 : isWobble ? wobbleSway : windLean}deg) translateY(${stopped ? 0 : -bodyBob}px) translateX(${panicShake}px)`,
           transformOrigin: "28px 60px",
           transition: isTripping ? "transform 0.12s ease-out" : "none",
@@ -287,6 +291,15 @@ export default function CharacterSprite({ character, frame, onClick, isSelected,
         <ellipse cx={headCX} cy={headCY + hbob} rx={headRX} ry={headRY} fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="1"
           transform={`rotate(${htilt}, ${headCX}, ${headCY + hbob})`}/>
 
+        {/* Rain umbrella */}
+        {weather === "rain" && !isNapping && !isKnockedOut && !isMelting && (
+          <>
+            <line x1="28" y1="-10" x2="28" y2={headCY - headRY - 2} stroke="#555" strokeWidth="1.5"/>
+            <path d={`M 8,-10 Q 28,-28 48,-10`} fill="#6b4ce6" stroke="#5538c8" strokeWidth="1"/>
+            <line x1="8" y1="-10" x2="48" y2="-10" stroke="#5538c8" strokeWidth="1"/>
+          </>
+        )}
+
         {/* State FX */}
         {isTripping && <><text x="42" y="8" fontSize="13">😵</text><text x="48" y="18" fontSize="9">⭐</text></>}
         {isFighting && <text x="42" y="6" fontSize="15">👊</text>}
@@ -300,6 +313,22 @@ export default function CharacterSprite({ character, frame, onClick, isSelected,
         {isNapping && <text x="42" y="6" fontSize="12">💤</text>}
         {isMeeting && <text x="42" y="6" fontSize="12">📋</text>}
         {isPanic && <text x="42" y="6" fontSize="14">😱</text>}
+
+        {/* Melting FX */}
+        {isMelting && (
+          <>
+            <text x="18" y="8" fontSize="14">😵</text>
+            {/* Puddle underneath */}
+            <ellipse cx="28" cy={92 + meltProgress * 4} rx={14 + meltProgress * 12} ry={3 + meltProgress * 3}
+              fill={character.skinTone} opacity={meltProgress * 0.6}/>
+            {/* Steam particles */}
+            {[0,1,2].map(i => {
+              const steamY = 30 - ((frame * 0.5 + i * 30) % 40);
+              const steamX = 14 + i * 14 + Math.sin(frame * 0.05 + i) * 4;
+              return <text key={i} x={steamX} y={steamY} fontSize="8" opacity={0.3 + meltProgress * 0.4}>~</text>;
+            })}
+          </>
+        )}
 
         {/* Knocked out: skull + spinning stars + KO text */}
         {isKnockedOut && (

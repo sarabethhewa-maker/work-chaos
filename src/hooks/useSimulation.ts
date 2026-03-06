@@ -1,6 +1,6 @@
 "use client";
 import { useRef, useState, useCallback, useEffect } from "react";
-import type { Character, CharacterState, Direction, Pet, WeatherState, LavaBall } from "@/types";
+import type { Character, CharacterState, Direction, Pet, WeatherState, LavaBall, Snowball } from "@/types";
 import { SHIRT_COLORS, SKIN_TONES, WORK_PHRASES, SHELTER_ZONES } from "@/types";
 import { DEFAULT_CHARACTERS } from "@/data/defaultCharacters";
 
@@ -83,11 +83,13 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
   );
   const [pets, setPets] = useState<Pet[]>([makePet(0), makePet(1), makePet(2), makePet(3)]);
   const [lavaBalls, setLavaBalls] = useState<LavaBall[]>([]);
+  const [snowballs, setSnowballs] = useState<Snowball[]>([]);
   const rafRef = useRef<number>(0);
   const weatherRef = useRef(weather);
   const envRef = useRef(env);
   const windDirRef = useRef<"left" | "right">(Math.random() > 0.5 ? "right" : "left");
   const lavaIdRef = useRef(0);
+  const snowballIdRef = useRef(0);
 
   // Fight result tracking: maps character id -> "winner" | "loser"
   const fightResultRef = useRef<Map<string, "winner" | "loser">>(new Map());
@@ -99,6 +101,7 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
   useEffect(() => {
     if (weather === "wind") windDirRef.current = Math.random() > 0.5 ? "right" : "left";
     if (weather !== "lava") setLavaBalls([]);
+    if (weather !== "snow") setSnowballs([]);
   }, [weather]);
 
   const addCharacter = useCallback((name: string, faceUrl: string) => {
@@ -261,6 +264,21 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
         });
       }
 
+      // Tick snowballs (snow weather)
+      if (w === "snow") {
+        setSnowballs(prev => {
+          let balls = prev.map(b => {
+            const p = b.progress + 0.025;
+            const t = p;
+            const x = b.startX + (b.targetX - b.startX) * t;
+            const arc = -120 * t * (1 - t); // parabolic arc
+            const y = b.startY + (b.targetY - b.startY) * t + arc;
+            return { ...b, x, y, progress: p };
+          }).filter(b => b.progress < 1);
+          return balls;
+        });
+      }
+
       // Tick characters
       setCharacters(prev => {
         if (prev.length === 0) return prev;
@@ -281,6 +299,22 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
           const snowMult = w === "snow" ? 0.4 : 1;
           const fogMult = w === "fog" ? 0.6 : 1;
           const weatherMult = snowMult * fogMult;
+
+          // MELTING (lava weather)
+          if (state === "melting") {
+            stateTimer--;
+            if (stateTimer <= 0) {
+              // Respawn at random position
+              return {
+                ...c, state: "running" as CharacterState, stateTimer: 0,
+                x: rand(60, W - 120), y: rand(GROUND_Y, MAX_Y),
+                vx: randSign() * rand(0.8, 1.6), vy: randSign() * rand(0.1, 0.3),
+                direction: Math.random() > 0.5 ? "right" as Direction : "left" as Direction,
+                speechBubble: "I'm back!", speechTimer: 80,
+              };
+            }
+            return { ...c, stateTimer, speechTimer, speechBubble };
+          }
 
           // CARRIED
           if (state === "carried" && c.carriedById) {
@@ -549,6 +583,29 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
             speechTimer = 80;
           }
 
+          // Lava: randomly start melting
+          if (w === "lava" && Math.random() < 0.003) {
+            return {
+              ...c, x, y, vx: 0, vy: 0, state: "melting" as CharacterState, stateTimer: 90,
+              speechBubble: "🫠 MELTING!", speechTimer: 90,
+            };
+          }
+
+          // Snow: randomly throw snowball at another character
+          if (w === "snow" && Math.random() < 0.005 && prev.length >= 2) {
+            const others = prev.filter(o => o.id !== c.id && o.state === "running");
+            if (others.length > 0) {
+              const target = others[Math.floor(Math.random() * others.length)];
+              setSnowballs(sb => [...sb, {
+                id: snowballIdRef.current++,
+                x: x + 28, y: y + 20,
+                startX: x + 28, startY: y + 20,
+                targetX: target.x + 28, targetY: target.y + 20,
+                progress: 0,
+              }]);
+            }
+          }
+
           return { ...c, x, y, vx, vy, direction, speechTimer, speechBubble };
         });
       });
@@ -573,7 +630,7 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
   }, []);
 
   return {
-    characters, pets, lavaBalls,
+    characters, pets, lavaBalls, snowballs,
     addCharacter, removeCharacter, updateCharacterFace,
     startFight, startChase, startFly, startCartwheel,
     startDance, startNap, startMeeting, startPanic, startPromote,

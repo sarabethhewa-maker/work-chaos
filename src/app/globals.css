@@ -423,6 +423,12 @@ body {
   50% { transform: translateY(-8px); opacity: 1; }
 }
 
+/* ── Snowball ── */
+.snowball {
+  position: absolute; pointer-events: none; z-index: 15;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.3));
+}
+
 @media (max-width: 640px) {
   .stage { height: 320px; }
   .add-bar { flex-wrap: wrap; }

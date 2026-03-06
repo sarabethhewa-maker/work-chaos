@@ -31,7 +31,7 @@ export default function Home() {
   const [windDirection] = useState<"left" | "right">(Math.random() > 0.5 ? "right" : "left");
 
   const {
-    characters, pets, lavaBalls, addCharacter, removeCharacter, updateCharacterFace,
+    characters, pets, lavaBalls, snowballs, addCharacter, removeCharacter, updateCharacterFace,
     startFight, startChase, startFly, startCartwheel,
     startDance, startNap, startMeeting, startPanic, startPromote,
     sayPhrase, allCartwheel, allFight, chaosMode,
@@ -233,6 +233,15 @@ export default function Home() {
             ))}
           </div>
           <WeatherOverlay weather={weather} lavaBalls={lavaBalls} windDirection={windDirection}/>
+          {/* Snowballs */}
+          {snowballs.map(sb => (
+            <div key={sb.id} className="snowball" style={{ left: sb.x - 6, top: sb.y - 6 }}>
+              <svg width="12" height="12" viewBox="0 0 12 12">
+                <circle cx="6" cy="6" r="5" fill="white" stroke="#cde" strokeWidth="1"/>
+                <circle cx="4" cy="4" r="1.5" fill="#e8f0ff" opacity="0.6"/>
+              </svg>
+            </div>
+          ))}
           {characters.length === 0 && (
             <div className="empty-hint">Add some people to watch the chaos unfold!</div>
           )}
@@ -264,7 +273,8 @@ export default function Home() {
                      c.state === "chasing" ? "😤" : c.state === "cartwheel" ? "🌀" :
                      c.state === "dancing" ? "💃" : c.state === "napping" ? "💤" :
                      c.state === "meeting" ? "📋" : c.state === "panic" ? "😱" :
-                     c.state === "promote" ? "🏆" : c.state === "knocked-out" ? "💀" : "🏃"}
+                     c.state === "promote" ? "🏆" : c.state === "knocked-out" ? "💀" :
+                     c.state === "melting" ? "🫠" : "🏃"}
                   </span>
                   <button onClick={() => removeCharacter(c.id)} className="cast-remove">✕</button>
                 </div>
