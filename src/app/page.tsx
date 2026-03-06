@@ -97,6 +97,24 @@ export default function Home() {
     showToast(hints[m] ?? "");
   };
 
+  const handleSelectAll = () => {
+    if (mode === "none" || characters.length < 2) return;
+    if (mode === "cartwheel") { allCartwheel(); showToast("🌀 Everyone cartwheel!"); }
+    else if (mode === "dance") { characters.forEach(c => startDance(c.id)); showToast("💃 Everyone dance!"); }
+    else if (mode === "nap") { characters.forEach(c => startNap(c.id)); showToast("💤 Everyone nap!"); }
+    else if (mode === "panic") { characters.forEach(c => startPanic(c.id)); showToast("😱 EVERYONE PANIC!"); }
+    else if (mode === "fight") { allFight(); showToast("👊 BRAWL!"); }
+    else if (mode === "fly") { characters.forEach(c => startFly(c.id)); showToast("✈️ Everyone fly!"); }
+    else if (mode === "chase") {
+      const shuffled = [...characters].sort(() => Math.random() - 0.5);
+      for (let i = 0; i < shuffled.length - 1; i += 2) {
+        startChase(shuffled[i].id, shuffled[i + 1].id);
+      }
+      showToast("🎯 Everyone chase!");
+    }
+    setMode("none"); setSelected([]);
+  };
+
   const handleCommand = useCallback((action: string, chars: string[], extra?: string) => {
     const findId = (name: string) => {
       const lower = name.toLowerCase();
@@ -167,6 +185,9 @@ export default function Home() {
         <button onClick={() => toggleMode("dance")} className={`tool-btn ${mode === "dance" ? "active" : ""}`}>💃 DANCE</button>
         <button onClick={() => toggleMode("nap")} className={`tool-btn ${mode === "nap" ? "active" : ""}`}>💤 NAP</button>
         <button onClick={() => toggleMode("panic")} className={`tool-btn ${mode === "panic" ? "active" : ""}`}>😱 PANIC</button>
+        {mode !== "none" && characters.length >= 2 && (
+          <button onClick={handleSelectAll} className="tool-btn active">🔥 ALL</button>
+        )}
       </div>
 
       {/* Weather toolbar */}
