@@ -108,6 +108,87 @@ body {
   50% { box-shadow: 0 0 30px rgba(255,0,0,0.6), 0 0 80px rgba(255,0,0,0.3); }
 }
 
+/* ── Ian Bot Army Button ── */
+.ian-army-btn {
+  display: inline-block;
+  padding: 16px 48px;
+  font-family: var(--font-mono), "Space Mono", monospace;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: #fff;
+  background: linear-gradient(135deg, #1a1aff, #0000cc, #000099);
+  border: 3px solid #4444ff;
+  border-radius: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(0, 0, 255, 0.4), 0 0 60px rgba(0, 0, 255, 0.15), inset 0 1px 0 rgba(255,255,255,0.2);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  transition: all 0.15s;
+  animation: ian-pulse 1.5s ease-in-out infinite;
+}
+.ian-army-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px rgba(0, 0, 255, 0.6), 0 0 80px rgba(0, 0, 255, 0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+  border-color: #6666ff;
+}
+.ian-army-btn:active { transform: scale(0.97); }
+@keyframes ian-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(0,0,255,0.4), 0 0 60px rgba(0,0,255,0.15); }
+  50% { box-shadow: 0 0 30px rgba(0,0,255,0.6), 0 0 80px rgba(0,0,255,0.3); }
+}
+
+/* ── Ian Bot Army Overlay ── */
+.ian-army-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0, 0, 20, 0.92);
+  overflow: hidden;
+  animation: ianOverlayIn 0.3s ease-out;
+}
+@keyframes ianOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.ian-army-title {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  font-family: var(--font-mono), "Space Mono", monospace;
+  font-size: clamp(28px, 8vw, 72px);
+  font-weight: 900; color: #4444ff;
+  letter-spacing: 6px; z-index: 10;
+  text-shadow: 0 0 40px rgba(68,68,255,0.8), 0 0 80px rgba(68,68,255,0.4);
+  animation: ianTitlePulse 0.6s ease-in-out infinite alternate;
+  pointer-events: none; white-space: nowrap;
+}
+@keyframes ianTitlePulse {
+  from { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+  to { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+}
+.ian-bot {
+  position: absolute;
+  display: flex; flex-direction: column; align-items: center;
+  animation: ianRun linear infinite;
+  pointer-events: none;
+}
+@keyframes ianRun {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(var(--vx), var(--vy)); }
+  50% { transform: translate(calc(var(--vx) * -0.5), calc(var(--vy) * -1.5)); }
+  75% { transform: translate(calc(var(--vx) * -1), calc(var(--vy) * 0.5)); }
+  100% { transform: translate(0, 0); }
+}
+.ian-chant {
+  font-family: var(--font-mono), "Space Mono", monospace;
+  font-size: 14px; font-weight: 900;
+  color: #00ff88; letter-spacing: 3px;
+  text-shadow: 0 0 10px rgba(0,255,136,0.8);
+  animation: ianChant 0.4s ease-in-out infinite alternate;
+  margin-top: 2px;
+}
+@keyframes ianChant {
+  from { transform: scale(0.8); opacity: 0.5; }
+  to { transform: scale(1.3); opacity: 1; }
+}
+
 /* ── Toolbar ── */
 .toolbar {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;

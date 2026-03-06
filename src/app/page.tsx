@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSimulation } from "@/hooks/useSimulation";
 import { useSounds } from "@/hooks/useSounds";
 import EnvBackground from "@/components/EnvBackground";
@@ -31,6 +31,8 @@ export default function Home() {
   const [weather, setWeather] = useState<WeatherState>("clear");
   const [windDirection] = useState<"left" | "right">(Math.random() > 0.5 ? "right" : "left");
   const [muted, setMuted] = useState(false);
+  const [ianArmy, setIanArmy] = useState(false);
+  const ianArmyRef = useRef<{ id: number; x: number; y: number; vx: number; vy: number; size: number; chantDelay: number }[]>([]);
 
   const {
     characters, pets, lavaBalls, snowballs, addCharacter, removeCharacter, updateCharacterFace,
@@ -119,6 +121,27 @@ export default function Home() {
     setMode("none"); setSelected([]);
   };
 
+  const triggerIanArmy = () => {
+    const ian = characters.find(c => c.name.toLowerCase() === "ian");
+    if (!ian) { showToast("⚠️ Add Ian first!"); return; }
+    if (ianArmy) return;
+    const bots = [];
+    for (let i = 0; i < 200; i++) {
+      bots.push({
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        vx: (Math.random() - 0.5) * 6,
+        vy: (Math.random() - 0.5) * 3,
+        size: 40 + Math.random() * 40,
+        chantDelay: Math.random() * 2,
+      });
+    }
+    ianArmyRef.current = bots;
+    setIanArmy(true);
+    setTimeout(() => setIanArmy(false), 10000);
+  };
+
   return (
     <main className="main">
       <header className="header">
@@ -153,9 +176,10 @@ export default function Home() {
         )}
       </div>
 
-      {/* Paul Rampage */}
-      <div style={{ display: "flex", justifyContent: "center", margin: "12px 0" }}>
+      {/* Special Buttons */}
+      <div style={{ display: "flex", justifyContent: "center", gap: "16px", margin: "12px 0", flexWrap: "wrap" }}>
         <a href="/paul" className="paul-rampage-btn">🦖 PAUL RAMPAGE</a>
+        <button onClick={triggerIanArmy} className="ian-army-btn">🤖 IAN BOT ARMY</button>
       </div>
 
       {/* Sound mute toggle */}
@@ -264,6 +288,33 @@ export default function Home() {
       </div>
 
       {toast && <div className="toast">{toast}</div>}
+
+      {/* Ian Bot Army Overlay */}
+      {ianArmy && (() => {
+        const ian = characters.find(c => c.name.toLowerCase() === "ian");
+        if (!ian) return null;
+        return (
+          <div className="ian-army-overlay">
+            <div className="ian-army-title">🤖 IAN BOT ARMY 🤖</div>
+            {ianArmyRef.current.map(bot => (
+              <div key={bot.id} className="ian-bot" style={{
+                left: `${bot.x}%`, top: `${bot.y}%`,
+                animationDuration: `${1.5 + Math.random() * 2}s`,
+                animationDelay: `${Math.random() * 0.5}s`,
+                ["--vx" as string]: `${bot.vx * 100}px`,
+                ["--vy" as string]: `${bot.vy * 60}px`,
+              }}>
+                <img src={ian.faceUrl} alt="Ian" style={{
+                  width: bot.size, height: bot.size, borderRadius: "50%",
+                  objectFit: "cover", border: "2px solid #00ff88",
+                  transform: bot.vx < 0 ? "scaleX(-1)" : "none",
+                }} />
+                <span className="ian-chant" style={{ animationDelay: `${bot.chantDelay}s` }}>IAN</span>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
     </main>
   );
 }
