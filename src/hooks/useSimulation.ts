@@ -126,21 +126,21 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
     punchTickRef.current.set(`${id1}-${id2}`, 0);
 
     setCharacters(prev => prev.map(c => {
-      if (c.id === id1) return { ...c, state: "fighting" as CharacterState, stateTimer: 180, targetId: id2, vx: 0, vy: 0 };
-      if (c.id === id2) return { ...c, state: "fighting" as CharacterState, stateTimer: 180, targetId: id1, vx: 0, vy: 0 };
+      if (c.id === id1) return { ...c, state: "fighting" as CharacterState, stateTimer: 45, targetId: id2, vx: 0, vy: 0 };
+      if (c.id === id2) return { ...c, state: "fighting" as CharacterState, stateTimer: 45, targetId: id1, vx: 0, vy: 0 };
       return c;
     }));
   }, []);
 
   const startChase = useCallback((chaserId: string, targetId: string) => {
     setCharacters(prev => prev.map(c =>
-      c.id === chaserId ? { ...c, state: "chasing" as CharacterState, stateTimer: 300, targetId } : c
+      c.id === chaserId ? { ...c, state: "chasing" as CharacterState, stateTimer: 75, targetId } : c
     ));
   }, []);
 
   const startFly = useCallback((flyerId: string, carryId?: string) => {
     setCharacters(prev => prev.map(c => {
-      if (c.id === flyerId) return { ...c, isFlying: true, state: "flying" as CharacterState, stateTimer: 400, targetId: carryId };
+      if (c.id === flyerId) return { ...c, isFlying: true, state: "flying" as CharacterState, stateTimer: 100, targetId: carryId };
       if (carryId && c.id === carryId) return { ...c, state: "carried" as CharacterState, carriedById: flyerId };
       return c;
     }));
@@ -148,19 +148,19 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
 
   const startCartwheel = useCallback((id: string) => {
     setCharacters(prev => prev.map(c =>
-      c.id === id ? { ...c, state: "cartwheel" as CharacterState, stateTimer: 120, vx: (c.direction === "right" ? 1 : -1) * 2.5 } : c
+      c.id === id ? { ...c, state: "cartwheel" as CharacterState, stateTimer: 30, vx: (c.direction === "right" ? 1 : -1) * 2.5 } : c
     ));
   }, []);
 
   const startDance = useCallback((id: string) => {
     setCharacters(prev => prev.map(c =>
-      c.id === id ? { ...c, state: "dancing" as CharacterState, stateTimer: 180, vx: 0, vy: 0 } : c
+      c.id === id ? { ...c, state: "dancing" as CharacterState, stateTimer: 45, vx: 0, vy: 0 } : c
     ));
   }, []);
 
   const startNap = useCallback((id: string) => {
     setCharacters(prev => prev.map(c =>
-      c.id === id ? { ...c, state: "napping" as CharacterState, stateTimer: 240, vx: 0, vy: 0 } : c
+      c.id === id ? { ...c, state: "napping" as CharacterState, stateTimer: 60, vx: 0, vy: 0 } : c
     ));
   }, []);
 
@@ -170,7 +170,7 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
     const centerY = (GROUND_Y + MAX_Y) / 2;
     setCharacters(prev => prev.map(c => {
       if (ids.includes(c.id)) {
-        return { ...c, state: "meeting" as CharacterState, stateTimer: 300, meetingX: centerX, meetingY: centerY };
+        return { ...c, state: "meeting" as CharacterState, stateTimer: 75, meetingX: centerX, meetingY: centerY };
       }
       return c;
     }));
@@ -179,7 +179,7 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
   const startPanic = useCallback((id: string) => {
     setCharacters(prev => prev.map(c =>
       c.id === id ? {
-        ...c, state: "panic" as CharacterState, stateTimer: 180,
+        ...c, state: "panic" as CharacterState, stateTimer: 45,
         vx: randSign() * rand(4, 6), vy: randSign() * rand(1, 2),
         speechBubble: "AAHHH!!!", speechTimer: 180,
       } : c
@@ -188,7 +188,7 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
 
   const startPromote = useCallback((id: string) => {
     setCharacters(prev => prev.map(c =>
-      c.id === id ? { ...c, state: "promote" as CharacterState, stateTimer: 150, vx: 0, vy: 0 } : c
+      c.id === id ? { ...c, state: "promote" as CharacterState, stateTimer: 38, vx: 0, vy: 0 } : c
     ));
   }, []);
 
@@ -201,7 +201,7 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
 
   const allCartwheel = useCallback(() => {
     setCharacters(prev => prev.map(c => ({
-      ...c, state: "cartwheel" as CharacterState, stateTimer: 120,
+      ...c, state: "cartwheel" as CharacterState, stateTimer: 30,
       vx: (c.direction === "right" ? 1 : -1) * 2.5,
     })));
   }, []);
@@ -220,8 +220,8 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
         fightResultRef.current.set(winner, "winner");
         fightResultRef.current.set(loser, "loser");
         punchTickRef.current.set(`${a}-${b}`, 0);
-        if (ai >= 0) result[ai] = { ...result[ai], state: "fighting" as CharacterState, stateTimer: 180, targetId: b, vx: 0, vy: 0 };
-        if (bi >= 0) result[bi] = { ...result[bi], state: "fighting" as CharacterState, stateTimer: 180, targetId: a, vx: 0, vy: 0 };
+        if (ai >= 0) result[ai] = { ...result[ai], state: "fighting" as CharacterState, stateTimer: 45, targetId: b, vx: 0, vy: 0 };
+        if (bi >= 0) result[bi] = { ...result[bi], state: "fighting" as CharacterState, stateTimer: 45, targetId: a, vx: 0, vy: 0 };
       }
       return result;
     });
@@ -301,9 +301,9 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
             if (x < 20) { x = 20; vx = Math.abs(vx); direction = "right"; }
             if (x > W - 60) { x = W - 60; vx = -Math.abs(vx); direction = "left"; }
             y = Math.max(40, Math.min(120, y));
-            if (stateTimer <= 60) {
+            if (stateTimer <= 20) {
               const groundY = rand(GROUND_Y, MAX_Y);
-              const descent = (60 - stateTimer) / 60;
+              const descent = (20 - stateTimer) / 20;
               y = y + (groundY - y) * descent;
             }
             if (stateTimer <= 0) return { ...c, isFlying: false, state: "running" as CharacterState, stateTimer: 0, targetId: undefined, y: rand(GROUND_Y, MAX_Y), speechTimer, speechBubble };
@@ -330,7 +330,7 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
           // NAPPING
           if (state === "napping") {
             stateTimer--;
-            if (stateTimer <= 0) return { ...c, state: "getting-up" as CharacterState, stateTimer: 60, speechTimer, speechBubble };
+            if (stateTimer <= 0) return { ...c, state: "getting-up" as CharacterState, stateTimer: 15, speechTimer, speechBubble };
             return { ...c, stateTimer, speechTimer, speechBubble };
           }
 
@@ -375,7 +375,7 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
             stateTimer--;
             if (stateTimer <= 0) {
               fightResultRef.current.delete(c.id);
-              return { ...c, state: "getting-up" as CharacterState, stateTimer: 90, speechBubble: undefined, speechTimer: 0 };
+              return { ...c, state: "getting-up" as CharacterState, stateTimer: 22, speechBubble: undefined, speechTimer: 0 };
             }
             return { ...c, stateTimer, speechTimer, speechBubble };
           }
@@ -383,7 +383,7 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
           // TRIPPING
           if (state === "tripping") {
             stateTimer--;
-            if (stateTimer <= 0) return { ...c, state: "getting-up" as CharacterState, stateTimer: 60, speechTimer, speechBubble };
+            if (stateTimer <= 0) return { ...c, state: "getting-up" as CharacterState, stateTimer: 15, speechTimer, speechBubble };
             return { ...c, speechTimer, speechBubble };
           }
 
@@ -391,7 +391,7 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
           if (state === "getting-up") {
             stateTimer--;
             if (stateTimer <= 0) {
-              return { ...c, state: "wobble" as CharacterState, stateTimer: 60, vx: randSign() * rand(0.3, 0.6), vy: randSign() * rand(0.05, 0.15), direction: c.direction, speechTimer, speechBubble };
+              return { ...c, state: "wobble" as CharacterState, stateTimer: 15, vx: randSign() * rand(0.3, 0.6), vy: randSign() * rand(0.05, 0.15), direction: c.direction, speechTimer, speechBubble };
             }
             return { ...c, stateTimer, speechTimer, speechBubble };
           }
@@ -431,9 +431,9 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
               if (c.targetId) {
                 const pairKey = c.id < c.targetId ? `${c.id}-${c.targetId}` : `${c.targetId}-${c.id}`;
                 const lastPunch = punchTickRef.current.get(pairKey) ?? 0;
-                if (180 - stateTimer - lastPunch >= 30) {
+                if (45 - stateTimer - lastPunch >= 10) {
                   playPunch();
-                  punchTickRef.current.set(pairKey, 180 - stateTimer);
+                  punchTickRef.current.set(pairKey, 45 - stateTimer);
                 }
               }
             }
@@ -450,16 +450,16 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
                 fightResultRef.current.delete(c.id);
                 const phrase = WIN_PHRASES[Math.floor(Math.random() * WIN_PHRASES.length)];
                 return {
-                  ...c, state: "dancing" as CharacterState, stateTimer: 60, targetId: undefined,
+                  ...c, state: "dancing" as CharacterState, stateTimer: 15, targetId: undefined,
                   vx: 0, vy: 0, x, direction,
                   speechBubble: phrase, speechTimer: 120,
                 };
               } else if (result === "loser") {
                 playOof();
                 return {
-                  ...c, state: "knocked-out" as CharacterState, stateTimer: 600, targetId: undefined,
+                  ...c, state: "knocked-out" as CharacterState, stateTimer: 150, targetId: undefined,
                   vx: 0, vy: 0, x, direction,
-                  speechBubble: "KO!", speechTimer: 600,
+                  speechBubble: "KO!", speechTimer: 150,
                 };
               } else {
                 // Fallback (shouldn't happen)
@@ -542,7 +542,7 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
               vx = -vx + rand(-0.5, 0.5); vy = -vy + rand(-0.3, 0.3); direction = vx > 0 ? "right" : "left";
             }
           }
-          if (tripped) return { ...c, x, y, vx: 0, vy: 0, state: "tripping" as CharacterState, stateTimer: 60, speechTimer, speechBubble };
+          if (tripped) return { ...c, x, y, vx: 0, vy: 0, state: "tripping" as CharacterState, stateTimer: 15, speechTimer, speechBubble };
 
           if (w === "snow" && Math.random() < 0.002 && !speechBubble) {
             speechBubble = "brrr...";
