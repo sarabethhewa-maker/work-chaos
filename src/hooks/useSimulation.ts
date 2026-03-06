@@ -255,7 +255,7 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
   }, []);
 
   const paulRampage = useCallback(() => {
-    // Phase 1: Paul grows into a huge dinosaur, everyone panics
+    // Phase 1: Paul grows into a huge dinosaur on the ground, everyone panics
     setCharacters(prev => {
       const paul = prev.find(c => c.name.toLowerCase() === "paul");
       if (!paul) return prev;
@@ -263,7 +263,7 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
       if (others.length === 0) return prev;
       return prev.map(c => {
         if (c.name.toLowerCase() === "paul") {
-          return { ...c, isFlying: true, state: "flying" as CharacterState, stateTimer: 250, vx: randSign() * rand(3, 5), speechBubble: "ROARRR! 🦖", speechTimer: 400, scale: 2.5 };
+          return { ...c, state: "running" as CharacterState, stateTimer: 0, vx: randSign() * rand(1.5, 3), vy: randSign() * rand(0.2, 0.5), speechBubble: "ROARRR! 🦖", speechTimer: 400, scale: 2, color: "#2d8a4e", isFlying: false };
         }
         return {
           ...c, state: "panic" as CharacterState, stateTimer: 60,
@@ -276,7 +276,7 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
     setTimeout(() => {
       setCharacters(prev => prev.map(c => {
         if (c.name.toLowerCase() === "paul") {
-          return { ...c, scale: 3.5, speechBubble: "LOSERS! 🦖", speechTimer: 300 };
+          return { ...c, scale: 2.5, speechBubble: "LOSERS! 🦖", speechTimer: 300, color: "#166534" };
         }
         return c;
       }));
@@ -302,7 +302,7 @@ export function useSimulation(weather: WeatherState = "clear", env: string = "ga
     setTimeout(() => {
       setCharacters(prev => prev.map(c => {
         if (c.name.toLowerCase() === "paul") {
-          return { ...c, scale: 1, speechBubble: "GG EZ 😎", speechTimer: 200 };
+          return { ...c, scale: 1, color: "#a29bfe", speechBubble: "GG EZ 😎", speechTimer: 200 };
         }
         return c;
       }));

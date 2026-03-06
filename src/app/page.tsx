@@ -204,7 +204,7 @@ export default function Home() {
       {/* Character selector cards */}
       {characters.length > 0 && (
         <div className="char-selector">
-          {characters.map(c => (
+          {characters.filter(c => !c.id.startsWith("ian-bot-")).map(c => (
             <button key={c.id}
               className={`char-card ${selected.includes(c.id) ? "selected" : ""}`}
               onClick={() => handleCharacterClick(c.id)}
@@ -262,9 +262,9 @@ export default function Home() {
       <div className="bottom-ui">
         {characters.length > 0 && (
           <div className="cast-panel">
-            <h3 className="cast-title">// CAST ({characters.length})</h3>
+            <h3 className="cast-title">// CAST ({characters.filter(c => !c.id.startsWith("ian-bot-")).length})</h3>
             <div className="cast-list">
-              {characters.map(c => (
+              {characters.filter(c => !c.id.startsWith("ian-bot-")).map(c => (
                 <div key={c.id} className="cast-item">
                   <img src={c.faceUrl} alt={c.name} className="cast-face"/>
                   <span className="cast-name">{c.name}</span>

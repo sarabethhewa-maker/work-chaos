@@ -299,6 +299,24 @@ export default function CharacterSprite({ character, frame, onClick, isSelected,
 
         {/* Rain umbrella removed from SVG — rendered as HTML element above */}
 
+        {/* Dino spikes + teeth when scaled up (Paul Rampage) */}
+        {(character.scale ?? 1) > 1.5 && (
+          <>
+            {/* Spikes on head */}
+            <polygon points="18,-6 22,-18 26,-6" fill="#166534"/>
+            <polygon points="24,-8 28,-22 32,-8" fill="#1a7a3a"/>
+            <polygon points="30,-6 34,-18 38,-6" fill="#166534"/>
+            {/* Teeth */}
+            <polygon points="14,38 17,46 20,38" fill="white"/>
+            <polygon points="22,39 25,48 28,39" fill="white"/>
+            <polygon points="30,39 33,48 36,39" fill="white"/>
+            <polygon points="38,38 41,46 44,38" fill="white"/>
+            {/* Tiny T-rex arms */}
+            <rect x="2" y="52" width="10" height="6" rx="3" fill="#2d8a4e" transform="rotate(-25 2 52)"/>
+            <rect x="44" y="52" width="10" height="6" rx="3" fill="#2d8a4e" transform="rotate(25 54 52)"/>
+          </>
+        )}
+
         {/* State FX */}
         {isTripping && <><text x="42" y="8" fontSize="13">😵</text><text x="48" y="18" fontSize="9">⭐</text></>}
         {isFighting && <text x="42" y="6" fontSize="15">👊</text>}
